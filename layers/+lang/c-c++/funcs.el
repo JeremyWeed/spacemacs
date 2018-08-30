@@ -9,6 +9,9 @@
 ;;
 ;;; License: GPLv3
 
+(require 'cl-lib)
+(require 'subr-x)
+
 (defun spacemacs//c-toggle-auto-newline ()
   "Toggle auto-newline."
   (c-toggle-auto-newline 1))
@@ -182,3 +185,162 @@ and the arguments for flyckeck-clang based on a project-specific text file."
   (interactive)
   (call-interactively (if (spacemacs/c-c++-use-rtags t)
                           'rtags-imenu 'idomenu)))
+
+
+;; lsp
+(defun spacemacs//c-c++-lsp-enabled ()
+  "Return true if one or other of the lsp backends is enabled"
+  (member c-c++-backend c-c++-lsp-backends))
+
+;; -- BEGIN helper functions for common configuration of cquery and ccls backends
+(defun spacemacs//c-c++-lsp-backend ()
+  "Return a string representation of the LSP backend specified by the `c-c++-backend' configuration variable, without the `lsp-' prefix."
+  (ecase c-c++-backend
+    ('lsp-ccls "ccls")
+    ('lsp-cquery "cquery")))
+
+(defun spacemacs//c-c++-lsp-string (prefix suffix)
+  (concat prefix (spacemacs//c-c++-lsp-backend) suffix))
+
+(defun spacemacs//c-c++-lsp-symbol (prefix suffix)
+  "Return a symbol for the LSP backend specified by the `c-c++-backend' configuration variable."
+  (intern (spacemacs//c-c++-lsp-string prefix suffix)))
+
+(defun spacemacs//c-c++-lsp-call-function (prefix suffix &rest args)
+  (apply (spacemacs//c-c++-lsp-symbol prefix suffix) args))
+
+(defun spacemacs//c-c++-lsp-funcall-interactively (prefix suffix &rest args)
+  (funcall-interactively (spacemacs//c-c++-lsp-symbol prefix suffix) args))
+
+(defun spacemacs//c-c++-lsp-funcall-interactively-no-args (prefix suffix)
+  (funcall-interactively (spacemacs//c-c++-lsp-symbol prefix suffix)))
+
+(defun spacemacs//c-c++-lsp-set-symbol (prefix suffix value)
+  (set (spacemacs//c-c++-lsp-symbol prefix suffix) (symbol-value value)))
+
+(defun spacemacs//c-c++-lsp-set-config (param prefix suffix)
+  (when (symbol-value param) (spacemacs//c-c++-lsp-set-symbol prefix suffix param)))
+
+(defun spacemacs//c-c++-lsp-apply-config (suffix)
+  (spacemacs//c-c++-lsp-set-config (intern (concat "c-c++-lsp-" suffix)) nil (concat "-" suffix)))
+;; -- END helper functions for common configuration of cquery and ccls backends
+
+
+(defun spacemacs//c-c++-lsp-enable ()
+  "Enable the LSP backend specified by the `c-c++-backend' configuration variable."
+    (progn (condition-case nil
+             (spacemacs//c-c++-lsp-call-function "lsp-" "-enable")
+             (user-error nil))))
+
+(defun spacemacs//c-c++-lsp-config ()
+  "Configure the LSP backend specified by the `c-c++-backend' configuration variable."
+    (progn
+      (spacemacs//c-c++-lsp-setup-company)
+      (spacemacs//c-c++-lsp-customise-lsp-ui-peek)
+      (spacemacs//c-c++-lsp-wrap-functions)
+      (setq-default flycheck-disabled-checkers '(c/c++-clang c/c++-gcc))
+
+      (if (eq c-c++-lsp-cache-dir nil)
+        (progn
+          (setq c-c++-lsp-cache-dir (file-truename(concat "~/.emacs.d/.cache/" (symbol-name c-c++-backend))))
+          (message (concat "c-c++: No c-c++-lsp-cache-dir specified: defaulting to " c-c++-lsp-cache-dir))))
+
+      (dolist (param '("executable" "extra-init-params" "cache-dir" "project-whitelist" "project-blacklist" "sem-highlight-method"))
+        (spacemacs//c-c++-lsp-apply-config param))
+
+      (when c-c++-lsp-sem-highlight-rainbow
+        (unless c-c++-lsp-sem-highlight-method
+          (progn
+            (setq c-c++-lsp-sem-highlight-method 'font-lock)
+            (message "c-c++: No semantic highlight method specified. Defaulting to `font-lock'.")))
+        (ecase c-c++-backend
+          ('lsp-cquery (cquery-use-default-rainbow-sem-highlight))
+          ('lsp-ccls (ccls-use-default-rainbow-sem-highlight))))
+
+      (dolist (mode c-c++-modes)
+        (spacemacs/lsp-bind-keys-for-mode mode)
+        (spacemacs//c-c++-lsp-bind-keys-for-mode mode))
+
+      (evil-set-initial-state '(spacemacs//c-c++-lsp-symbol nil "-tree-mode") 'emacs)
+      ;;evil-record-macro keybinding clobbers q in cquery-tree-mode-map for some reason?
+      (evil-make-overriding-map (symbol-value (spacemacs//c-c++-lsp-symbol nil "-tree-mode-map")))))
+
+(defun spacemacs//c-c++-lsp-setup-company ()
+  "Setup LSP backend auto-completion."
+    (progn
+      (spacemacs|add-company-backends :backends company-lsp :modes c-mode-common)
+      ;;Disable client-side cache and sorting, as server does a better job
+      (setq company-transformers nil company-lsp-async t company-lsp-cache-candidates nil)))
+
+(defun spacemacs//c-c++-lsp-wrap-functions ()
+  "Wrap navigation functions for the LSP backend specified by the `c-c++-backend' configuration variable."
+  (defun c-c++/call-hierarchy () (interactive) (spacemacs//c-c++-lsp-funcall-interactively nil "-call-hierarchy" nil))
+  (defun c-c++/call-hierarchy-inv () (interactive) (spacemacs//c-c++-lsp-funcall-interactively nil "-call-hierarchy" t))
+  (defun c-c++/inheritance-hierarchy () (interactive) (spacemacs//c-c++-lsp-funcall-interactively nil "-inheritance-hierarchy"))
+  (defun c-c++/inheritance-hierarchy-inv () (interactive) (spacemacs//c-c++-lsp-funcall-interactively nil "-inheritance-hierarchy" t))
+  (defun c-c++/member-hierarchy () (interactive) (spacemacs//c-c++-lsp-funcall-interactively-no-args nil "-member-hierarchy"))
+  (defun c-c++/freshen-index () (interactive) (spacemacs//c-c++-lsp-funcall-interactively nil "-freshen-index"))
+  (defun c-c++/preprocess-file () (interactive) (spacemacs//c-c++-lsp-funcall-interactively nil "-preprocess-file")))
+
+(defun spacemacs//c-c++-lsp-bind-keys-for-mode (mode)
+  "Bind LSP backend functions for the specificed mode."
+  (spacemacs/set-leader-keys-for-major-mode mode
+    ;; goto
+    ;; FIXME gf conflicts with `lsp-ui-flycheck-list' binding in lsp layer
+    ;; Better corrected in lsp-layer? rebinding here for now
+    "ge" #'lsp-ui-flycheck-list
+    "gf" 'find-file-at-point
+    "gF" 'ffap-other-window
+    "g&" #'c-c++/references-address
+    "gR" #'c-c++/references-read
+    "gW" #'c-c++/references-write
+    "gc" #'c-c++/callers
+    "gv" #'c-c++/vars
+    ;; help/hierarchy
+    "hb" #'c-c++/base ;;Replace this with lsp-goto-implementation in lsp-layer?
+    "hc" #'c-c++/call-hierarchy
+    "hC" #'c-c++/call-hierarchy-inv
+    "hi" #'c-c++/inheritance-hierarchy
+    "hI" #'c-c++/inheritance-hierarchy-inv
+    "hm" #'c-c++/member-hierarchy
+    ;; lsp/backend
+    "lf" #'c-c++/freshen-index
+    "lp" #'c-c++/preprocess-file))
+
+(defun spacemacs//c-c++-lsp-customise-lsp-ui-peek ()
+  "Wrap some backend-specific features using the `lsp-ui-peek' functions provided by the `lsp' layer (`lsp-ui' package)"
+  (spacemacs//c-c++-lsp-call-function "spacemacs//c-c++-lsp-" "-customise-lsp-ui-peek")
+
+  (defun c-c++/vars () (interactive) (lsp-ui-peek-find-custom 'vars (spacemacs//c-c++-lsp-string "$" "/vars")))
+
+  (defun c-c++/references-address ()
+    (interactive)
+    (lsp-ui-peek-find-custom
+      'address "textDocument/references"
+      (plist-put (lsp--text-document-position-params) :context
+        '(:role 128))))
+
+  (defun c-c++/references-read ()
+    (interactive)
+    (lsp-ui-peek-find-custom
+      'read "textDocument/references"
+      (plist-put (lsp--text-document-position-params) :context
+        '(:role 8))))
+
+  (defun c-c++/references-write ()
+    (interactive)
+    (lsp-ui-peek-find-custom
+      'write "textDocument/references"
+      (plist-put (lsp--text-document-position-params) :context
+        '(:role 16)))))
+
+(defun spacemacs//c-c++-lsp-cquery-customise-lsp-ui-peek ()
+  (defun c-c++/callers () (interactive) (lsp-ui-peek-find-custom 'callers "$cquery/callers"))
+  (defun c-c++/base () (interactive) (lsp-ui-peek-find-custom 'base "$cquery/base")))
+
+(defun spacemacs//c-c++-lsp-ccls-customise-lsp-ui-peek ()
+  (defun c-c++/callers () (interactive) (lsp-ui-peek-find-custom 'callers "$ccls/call"))
+  (defun c-c++/base ()
+    (interactive)
+    (lsp-ui-peek-find-custom 'base "$ccls/inheritance"
+      (append (lsp--text-document-position-params) '(:flat t :level 3)))))
