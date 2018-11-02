@@ -20,3 +20,11 @@
         (treemacs--find-workspace))
       (treemacs-do-add-project-to-workspace path name)
       (treemacs-select-window))))
+
+(defun spacemacs/treemacs-setup-width-lock ()
+  "Setup the width lock of treemacs buffer based on
+`treemacs-lock-width'."
+  (interactive)
+  (unless (eq (not treemacs--width-is-locked)
+              (not treemacs-lock-width))
+    (treemacs-toggle-fixed-width)))

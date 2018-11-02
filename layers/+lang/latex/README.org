@@ -2,7 +2,7 @@
 
 [[file:img/latex.png]]
 
-* Table of Contents                                         :TOC_4_gh:noexport:
+* Table of Contents                     :TOC_4_gh:noexport:
 - [[#description][Description]]
   - [[#features][Features:]]
   - [[#bibtex][BibTeX]]
@@ -14,7 +14,7 @@
   - [[#auto-fill][Auto-fill]]
   - [[#folding][Folding]]
   - [[#magic-latex-buffer][Magic latex buffer]]
-- [[#keybindings][Keybindings]]
+- [[#key-bindings][Key bindings]]
   - [[#folding-1][Folding]]
   - [[#reftex][RefTeX]]
 
@@ -98,7 +98,6 @@ To enable “magic” symbols in latex buffers, set the variable
 
 The precise effect of this feature can be modified by adjusting the following
 variables:
-
 - =magic-latex-enable-block-highlight=: show font properties like =\large=
   (default =t=).
 - =magic-latex-enable-block-align=: reflect block alignment such as =\center=
@@ -110,7 +109,7 @@ variables:
 
 By default, the underlying latex code is echoed in the echo area.
 
-* Keybindings
+* Key bindings
 
 | Key Binding   | Description                                |
 |---------------+--------------------------------------------|

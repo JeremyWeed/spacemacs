@@ -10,10 +10,9 @@
 ;;; License: GPLv3
 
 (setq clojure-packages
-      '(
-        cider
+      '(cider
         cider-eval-sexp-fu
-        clj-refactor
+        (clj-refactor :toggle clojure-enable-clj-refactor)
         clojure-cheatsheet
         clojure-mode
         (clojure-snippets :toggle (configuration-layer/layer-used-p 'auto-completion))
@@ -227,7 +226,8 @@
 
       (evil-define-key 'normal cider-repl-mode-map
         (kbd "C-j") 'cider-repl-next-input
-        (kbd "C-k") 'cider-repl-previous-input)
+        (kbd "C-k") 'cider-repl-previous-input
+        (kbd "RET") 'cider-repl-return)
 
       (evil-define-key 'insert cider-repl-mode-map
         (kbd "C-j") 'cider-repl-next-input
