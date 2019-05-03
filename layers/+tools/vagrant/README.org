@@ -1,5 +1,7 @@
 #+TITLE: Vagrant layer
 
+#+TAGS: layer|tool
+
 [[file:img/vagrant.png]]
 
 * Table of Contents                     :TOC_4_gh:noexport:
@@ -39,7 +41,7 @@ in this directory.
 
 * Key bindings
 
-| Key Binding | Description                                                                                    |
+| Key binding | Description                                                                                    |
 |-------------+------------------------------------------------------------------------------------------------|
 | ~SPC a V D~ | destroy a box                                                                                  |
 | ~SPC a V e~ | edit the =Vagrantfile=                                                                         |

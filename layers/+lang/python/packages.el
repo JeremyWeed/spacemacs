@@ -10,44 +10,44 @@
 ;;; License: GPLv3
 
 (setq python-packages
-  '(
-    company
-    counsel-gtags
-    cython-mode
-    eldoc
-    evil-matchit
-    flycheck
-    ggtags
-    helm-cscope
-    helm-gtags
-    (helm-pydoc :requires helm)
-    importmagic
-    live-py-mode
-    (nose :location local)
-    org
-    pip-requirements
-    pipenv
-    pippel
-    py-isort
-    pyenv-mode
-    (pylookup :location local)
-    pytest
-    (python :location built-in)
-    pyvenv
-    semantic
-    smartparens
-    stickyfunc-enhance
-    xcscope
-    yapfify
-    ;; packages for anaconda backend
-    anaconda-mode
-    (company-anaconda :requires company)
-    ;; packages for lsp backend
-    (lsp-python :requires lsp-mode)
-    ))
+      '(
+        blacken
+        company
+        counsel-gtags
+        cython-mode
+        eldoc
+        evil-matchit
+        flycheck
+        ggtags
+        helm-cscope
+        helm-gtags
+        (helm-pydoc :requires helm)
+        importmagic
+        live-py-mode
+        (nose :location local)
+        org
+        pip-requirements
+        pipenv
+        pippel
+        py-isort
+        pyenv-mode
+        (pylookup :location local)
+        pytest
+        (python :location built-in)
+        pyvenv
+        semantic
+        smartparens
+        stickyfunc-enhance
+        xcscope
+        yapfify
+        ;; packages for anaconda backend
+        anaconda-mode
+        (company-anaconda :requires company)
+        ))
 
 (defun python/init-anaconda-mode ()
   (use-package anaconda-mode
+    :if (eq python-backend 'anaconda)
     :defer t
     :init
     (progn
@@ -57,7 +57,7 @@
         "gb" 'xref-pop-marker-stack
         "gu" 'anaconda-mode-find-references)
       (setq anaconda-mode-installation-directory
-            (concat spacemacs-cache-directory "anaconda-mode")))
+        (concat spacemacs-cache-directory "anaconda-mode")))
     :config
     (progn
       ;; new anaconda-mode (2018-06-03) removed `anaconda-view-mode-map' in
@@ -74,7 +74,7 @@
       (defadvice anaconda-mode-goto (before python/anaconda-mode-goto activate)
         (evil--jumps-push))
       (add-to-list 'spacemacs-jump-handlers-python-mode
-                   '(anaconda-mode-find-definitions :async t)))))
+        '(anaconda-mode-find-definitions :async t)))))
 
 (defun python/post-init-company ()
   ;; backend specific
@@ -92,18 +92,31 @@
 
 (defun python/init-company-anaconda ()
   (use-package company-anaconda
+    :if (eq python-backend 'anaconda)
     :defer t
     ;; see `spacemacs//python-setup-anaconda-company'
     ))
+
+(defun python/init-blacken ()
+  (use-package blacken
+    :defer t
+    :init
+    (progn
+      (spacemacs//bind-python-formatter-keys)
+      (when (and python-format-on-save
+                 (eq 'black python-formatter))
+        (add-hook 'python-mode-hook 'blacken-mode)))
+    :config (spacemacs|hide-lighter blacken-mode)))
 
 (defun python/init-cython-mode ()
   (use-package cython-mode
     :defer t
     :init
     (progn
-      (spacemacs/set-leader-keys-for-major-mode 'cython-mode
-        "hh" 'anaconda-mode-show-doc
-        "gu" 'anaconda-mode-find-references))))
+      (when (eq python-backend 'anaconda)
+        (spacemacs/set-leader-keys-for-major-mode 'cython-mode
+          "hh" 'anaconda-mode-show-doc
+          "gu" 'anaconda-mode-find-references)))))
 
 (defun python/post-init-eldoc ()
   (add-hook 'python-mode-local-vars-hook #'spacemacs//python-setup-eldoc))
@@ -140,6 +153,7 @@
     :init
     (progn
       (add-hook 'python-mode-hook 'importmagic-mode)
+      (spacemacs|diminish importmagic-mode " ⓘ" " [i]")
       (spacemacs/set-leader-keys-for-major-mode 'python-mode
         "rf" 'importmagic-fix-symbol-at-point))))
 
@@ -150,11 +164,6 @@
     :init
     (spacemacs/set-leader-keys-for-major-mode 'python-mode
       "l" 'live-py-mode)))
-
-(defun python/init-lsp-python ()
-  (use-package lsp-python
-    :commands lsp-python-enable
-    :config (spacemacs//setup-lsp-jump-handler 'python-mode)))
 
 (defun python/init-nose ()
   (use-package nose
@@ -327,12 +336,12 @@
         "db" 'spacemacs/python-toggle-breakpoint
         "ri" 'spacemacs/python-remove-unused-imports
         "sB" 'spacemacs/python-shell-send-buffer-switch
-        "sb" 'python-shell-send-buffer
+        "sb" 'spacemacs/python-shell-send-buffer
         "sF" 'spacemacs/python-shell-send-defun-switch
-        "sf" 'python-shell-send-defun
+        "sf" 'spacemacs/python-shell-send-defun
         "si" 'spacemacs/python-start-or-switch-repl
         "sR" 'spacemacs/python-shell-send-region-switch
-        "sr" 'python-shell-send-region)
+        "sr" 'spacemacs/python-shell-send-region)
 
       ;; Set `python-indent-guess-indent-offset' to `nil' to prevent guessing `python-indent-offset
       ;; (we call python-indent-guess-indent-offset manually so python-mode does not need to do it)
@@ -406,8 +415,8 @@ fix this issue."
     :defer t
     :init
     (progn
-      (spacemacs/set-leader-keys-for-major-mode 'python-mode
-        "=" 'yapfify-buffer)
-      (when python-enable-yapf-format-on-save
+      (spacemacs//bind-python-formatter-keys)
+      (when (and python-format-on-save
+                 (eq 'yapf python-formatter))
         (add-hook 'python-mode-hook 'yapf-mode)))
     :config (spacemacs|hide-lighter yapf-mode)))

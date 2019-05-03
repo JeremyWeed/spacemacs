@@ -62,6 +62,7 @@
         "fL"  'counsel-locate
         ;; help
         "?"   'counsel-descbinds
+        "hda" 'counsel-apropos
         "hdf" 'counsel-describe-function
         "hdF" 'counsel-describe-face
         "hdm" 'spacemacs/describe-mode
@@ -99,26 +100,31 @@
         "sgF" 'spacemacs/search-grep-region-or-symbol
         "sgp" 'counsel-git-grep
         "sgP" 'spacemacs/counsel-git-grep-region-or-symbol
-        "skd" 'spacemacs/search-ack-grep
-        "skD" 'spacemacs/search-ack-grep-region-or-symbol
+        "skd" 'spacemacs/search-dir-ack
+        "skD" 'spacemacs/search-dir-ack-region-or-symbol
         "skf" 'spacemacs/search-ack
         "skF" 'spacemacs/search-ack-region-or-symbol
         "skp" 'spacemacs/search-project-ack
         "skP" 'spacemacs/search-project-ack-region-or-symbol
-        "srd" 'spacemacs/search-rg-grep
-        "srD" 'spacemacs/search-rg-grep-region-or-symbol
+        "srd" 'spacemacs/search-dir-rg
+        "srD" 'spacemacs/search-dir-rg-region-or-symbol
         "srf" 'spacemacs/search-rg
         "srF" 'spacemacs/search-rg-region-or-symbol
         "srp" 'spacemacs/search-project-rg
         "srP" 'spacemacs/search-project-rg-region-or-symbol
-        "std" 'spacemacs/search-pt-grep
-        "stD" 'spacemacs/search-pt-grep-region-or-symbol
+        "std" 'spacemacs/search-dir-pt
+        "stD" 'spacemacs/search-dir-pt-region-or-symbol
         "stf" 'spacemacs/search-pt
         "stF" 'spacemacs/search-pt-region-or-symbol
         "stp" 'spacemacs/search-project-pt
         "stP" 'spacemacs/search-project-pt-region-or-symbol))
     :config
     (progn
+      ;; Temporarily handle older versions of ivy
+      ;; https://github.com/abo-abo/swiper/pull/1863/files
+      (unless (fboundp 'counsel--elisp-to-pcre)
+        (defalias 'counsel--elisp-to-pcre 'counsel-unquote-regex-parens))
+
       ;; set additional ivy actions
       (ivy-set-actions
        'counsel-find-file

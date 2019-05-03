@@ -1,5 +1,7 @@
 #+TITLE: CFEngine layer
 
+#+TAGS: layer|tool
+
 #+PROPERTY: header-args :eval never-export
 
 [[file:./img/agent.png]]
@@ -81,6 +83,6 @@ To suppress the confirmation when executing a block set
 
 * Key bindings
 
-| Key Binding | Description           |
+| Key binding | Description           |
 |-------------+-----------------------|
 | ~SPC m j~   | Reformats JSON string |

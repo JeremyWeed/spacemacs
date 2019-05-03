@@ -46,6 +46,7 @@ to get all the goodies of this layer:
   go get -u -v golang.org/x/tools/cmd/guru
   go get -u -v golang.org/x/tools/cmd/gorename
   go get -u -v golang.org/x/tools/cmd/goimports
+  go get -u -v golang.org/x/tools/cmd/godoc
   go get -u -v github.com/zmb3/gogetdoc
   go get -u -v github.com/cweill/gotests/...
   go get -u github.com/haya14busa/gopkgs/cmd/gopkgs
@@ -113,11 +114,8 @@ To enable the LSP backend set the layer variable =go-backend=:
   (go :variables go-backend 'lsp)
 #+END_SRC
 
-You also need to install the Go Language Server:
-
-#+BEGIN_SRC sh
-  go get -u github.com/sourcegraph/go-langserver
-#+END_SRC
+You also need to install the Go Language Server.
+Consult the installation command for the desired language server found at [[https://www.github.com/emacs-lsp/lsp-mode/][lsp-mode]] for instructions.
 
 Backend can be chosen on a per project basis using directory local variables
 (files named =.dir-locals.el= at the root of a project), an example to use the
@@ -154,6 +152,15 @@ or
 
 #+BEGIN_SRC emacs-lisp
   (go :variables gofmt-command "goimports")
+#+END_SRC
+
+To run current main package with command line arguments, set the value of
+=go-run-args= as file local variable, e.g.
+
+#+BEGIN_SRC emacs-lisp
+  // Local Variables:
+  // go-run-args: "--output run.log"
+  // End:
 #+END_SRC
 
 ** Indentation
@@ -231,7 +238,7 @@ You have a few options to ensure you always get up to date suggestions:
 * Working with Go
 ** Go commands (start with =m=):
 
-| Key Binding   | Description                                                                           |
+| Key binding   | Description                                                                           |
 |---------------+---------------------------------------------------------------------------------------|
 | ~SPC m =~     | run “go fmt”                                                                          |
 | ~SPC m e b~   | go-play buffer                                                                        |
@@ -256,7 +263,7 @@ You have a few options to ensure you always get up to date suggestions:
 
 ** Go Guru
 
-| Key Binding | Description                                          |
+| Key binding | Description                                          |
 |-------------+------------------------------------------------------|
 | ~SPC m f <~ | go-guru show possible callers                        |
 | ~SPC m f >~ | go-guru show call targets                            |
@@ -273,14 +280,14 @@ You have a few options to ensure you always get up to date suggestions:
 
 ** Refactoring
 
-| Key Binding | Description                                                    |
-|-------------+----------------------------------------------------------------|
-| ~SPC m r d~ | Add comment stubs                                              |
-| ~SPC m r e~ | Extract code as new function                                   |
-| ~SPC m r f~ | Add field tags                                                 |
-| ~SPC m r F~ | Remove field tags                                              |
-| ~SPC m r i~ | Generate method subs for implementing an interface (=go-impl=) |
-| ~SPC m r n~ | Rename (with =godoctor=)                                       |
-| ~SPC m r N~ | Rename (with =go-rename=)                                      |
-| ~SPC m r s~ | Fill structure with default values                             |
-| ~SPC m r t~ | Toggle declaration and assignment                              |
+| Key binding | Description                                                     |
+|-------------+-----------------------------------------------------------------|
+| ~SPC m r d~ | Add comment stubs                                               |
+| ~SPC m r e~ | Extract code as new function                                    |
+| ~SPC m r f~ | Add field tags                                                  |
+| ~SPC m r F~ | Remove field tags                                               |
+| ~SPC m r i~ | Generate method stubs for implementing an interface (=go-impl=) |
+| ~SPC m r n~ | Rename (with =godoctor=)                                        |
+| ~SPC m r N~ | Rename (with =go-rename=)                                       |
+| ~SPC m r s~ | Fill structure with default values                              |
+| ~SPC m r t~ | Toggle declaration and assignment                               |

@@ -10,11 +10,11 @@
 ;;; License: GPLv3
 
 (setq ruby-on-rails-packages
-  '(
-    feature-mode
-    projectile-rails
-    which-key
-    ))
+      '(
+        feature-mode
+        projectile-rails
+        which-key
+        ))
 
 (defun ruby-on-rails/init-projectile-rails ()
   (use-package projectile-rails
@@ -73,7 +73,10 @@
         "fRx" 'projectile-rails-extract-region)
 
       (dolist (mode '(ruby-mode enh-ruby-mode))
-        (spacemacs/declare-prefix-for-mode mode "mf" "rails/rubocop")
+        (spacemacs/declare-prefix-for-mode mode "mf" "rails")
+        (spacemacs/declare-prefix-for-mode mode "mfc" "generate/destroy")
+        (spacemacs/declare-prefix-for-mode mode "mfR" "extract")
+        (spacemacs/declare-prefix-for-mode mode "mfx" "server")
         (spacemacs/declare-prefix-for-mode mode "mff" "file")
         (spacemacs/declare-prefix-for-mode mode "mfg" "goto"))
 

@@ -1,5 +1,7 @@
 #+TITLE: Treemacs layer
 
+#+TAGS: file tree|layer
+
 [[file:img/treemacs.png]]
 
 * Table of Contents                     :TOC_4_gh:noexport:
@@ -11,13 +13,12 @@
   - [[#file-watch][File watch]]
   - [[#collapsed-directories][Collapsed directories]]
   - [[#locking-width][Locking width]]
-- [[#key-bindings][Key Bindings]]
+- [[#key-bindings][Key bindings]]
   - [[#global][Global]]
   - [[#inside-treemacs][Inside Treemacs]]
 
 * Description
-This layer brings in [[https://github.com/Alexander-Miller/treemacs][Treemacs]] to replace Neotree as the default file and project
-explorer:
+This layer sets up a file navigation and project explorer side-window via [[https://github.com/Alexander-Miller/treemacs][Treemacs]].
 
 ** Features:
 An detailed overview over Treemacs’ available features is available in [[https://github.com/Alexander-Miller/treemacs#detailed-feature-list][its
@@ -25,7 +26,7 @@ readme]]. In a short summary Treemacs offers the following:
 - Simple and powerful navigation and ability to detail exactly how and where a
   file should be opened
 - Good looking png icons.
-- Display of multiple file trees organized as projects residing in a workpsace.
+- Display of multiple file trees organized as projects residing in a workspace.
 - Ability to show tags contained in files. Tags are provided by imenu, so
   nearly every filetype is supported.
 - Mouse interface for single and double left clicks in line with modern GUI standards.
@@ -84,7 +85,7 @@ Default is 3 (or 0 when python is not installed).
 ** Locking width
 To have the width of the treemacs window locked by default, meaning not manually
 resizable, set the variable =treemacs-lock-width= to non-nil. It will still be
-resizable through Treemacs commands and keybindings.
+resizable through Treemacs commands and key bindings.
 
 #+BEGIN_SRC emacs-lisp
   (setq-default dotspacemacs-configuration-layers '(
@@ -93,10 +94,10 @@ resizable through Treemacs commands and keybindings.
 
 Default is =nil=.
 
-* Key Bindings
+* Key bindings
 ** Global
 
-| Key Binding | Description                                                                                                                                    |
+| Key binding | Description                                                                                                                                    |
 |-------------+------------------------------------------------------------------------------------------------------------------------------------------------|
 | ~M-0~       | Selected the treemacs window. Actually selects window #10, which is always assigned to treemacs.                                               |
 | ~SPC 0~     | Open treemacs in the current directory. When not visiting a file use $HOME as fallback. With a prefix arg manually select the root instead.    |
@@ -111,7 +112,7 @@ depending on whether vim/hybrid editing style is used. Likewise refresh is only
 bound to g when emacs editing style is used, since under vim g is a prefix for
 many other commands.
 
-| Key Binding | Description                                                                                                    |
+| Key binding | Description                                                                                                    |
 |-------------+----------------------------------------------------------------------------------------------------------------|
 | ~?~         | Summon the helpful hydra to show you the treemacs keymap.                                                      |
 | ~M-j/M-n~   | Select next node at the same depth as currently selected node, if possible.                                    |
@@ -133,12 +134,12 @@ many other commands.
 | ~TAB~       | Do what I mean (as defined in ~treemacs-TAB-actions-config~). Prefers expanding nodes by default.              |
 | ~RET~       | Do what I mean (as defined in ~treemacs-RET-actions-config~). Prefers visiting nodes by default.               |
 | ~mouse1~    | Move point to clicked line                                                                                     |
-| ~2x mouse1~ | Do what I mean (as defined in ~treemacs-doubleclick-actions-config~). Behavious like ~RET~ by default.         |
+| ~2x mouse1~ | Do what I mean (as defined in ~treemacs-doubleclick-actions-config~). Behaves like ~RET~ by default.           |
 | ~g/r/gr~    | Refresh and rebuild the treemacs buffer.                                                                       |
 | ~d~         | Delete node at point. A delete action must always be confirmed. Directories are deleted recursively.           |
 | ~cf~        | Create a file.                                                                                                 |
 | ~cd~        | Create a directory.                                                                                            |
-| ~R~         | Rename the currently selected node. Reload buffers visiting renamed files or files in renamed direcotries.     |
+| ~R~         | Rename the currently selected node. Reload buffers visiting renamed files or files in renamed directories.     |
 | ~u~         | Select parent of selected node, if possible.                                                                   |
 | ~q~         | Hide/show an existing treemacs buffer.                                                                         |
 | ~Q~         | Kill the treemacs buffer.                                                                                      |

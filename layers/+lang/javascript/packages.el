@@ -20,16 +20,17 @@
         helm-gtags
         imenu
         impatient-mode
+        import-js
         js-doc
         js2-mode
         js2-refactor
         livid-mode
-        (lsp-javascript-typescript :requires lsp-mode)
         org
         prettier-js
         skewer-mode
         tern
-        web-beautify))
+        web-beautify
+        ))
 
 (defun javascript/post-init-add-node-modules-path ()
   (spacemacs/add-to-hooks #'add-node-modules-path '(css-mode-hook
@@ -39,14 +40,13 @@
   (spacemacs/counsel-gtags-define-keys-for-mode 'js2-mode))
 
 (defun javascript/post-init-evil-matchit ()
-  (add-hook `js2-mode `turn-on-evil-matchit-mode))
+  (add-hook `js2-mode-hook `turn-on-evil-matchit-mode))
 
 (defun javascript/post-init-company ()
   (add-hook 'js2-mode-local-vars-hook #'spacemacs//javascript-setup-company))
 
 (defun javascript/post-init-flycheck ()
-  (spacemacs/enable-flycheck 'js2-mode)
-  (add-hook 'js2-mode-hook #'spacemacs//javascript-setup-eslint t))
+  (spacemacs/enable-flycheck 'js2-mode))
 
 (defun javascript/post-init-ggtags ()
   (add-hook 'js2-mode-local-vars-hook #'spacemacs/ggtags-mode-enable))
@@ -60,7 +60,7 @@
 
 (defun javascript/post-init-impatient-mode ()
   (spacemacs/set-leader-keys-for-major-mode 'js2-mode
-    "i" 'spacemacs/impatient-mode))
+    "I" 'spacemacs/impatient-mode))
 
 (defun javascript/pre-init-org ()
   (spacemacs|use-package-add-hook org
@@ -84,6 +84,8 @@
                      (cons 'javascript-backend value))))
     :config
     (progn
+      (when javascript-fmt-on-save
+        (add-hook 'js2-mode-local-vars-hook 'spacemacs/javascript-fmt-before-save-hook))
       ;; prefixes
       (spacemacs/declare-prefix-for-mode 'js2-mode "mh" "documentation")
       (spacemacs/declare-prefix-for-mode 'js2-mode "mg" "goto")
@@ -159,21 +161,20 @@
     :defer t
     :init
     (progn
+      (spacemacs/declare-prefix-for-mode 'js2-mode "mT" "toggle")
       (spacemacs|add-toggle javascript-repl-live-evaluation
         :mode livid-mode
         :documentation "Live evaluation of JS buffer change."
         :evil-leader-for-mode (js2-mode . "Tl"))
       (spacemacs|diminish livid-mode " 🅻" " [l]"))))
 
-(defun javascript/init-lsp-javascript-typescript ()
-  (use-package lsp-javascript-typescript
-    :commands lsp-javascript-typescript-enable
-    :defer t
-    :config (spacemacs//setup-lsp-jump-handler 'js2-mode)))
-
 (defun javascript/pre-init-prettier-js ()
   (if (eq javascript-fmt-tool 'prettier)
       (add-to-list 'spacemacs--prettier-modes 'js2-mode)))
+
+(defun javascript/pre-init-import-js ()
+  (if (eq javascript-import-tool 'import-js)
+      (add-to-list 'spacemacs--import-js-modes (cons 'js2-mode 'js2-mode-hook))))
 
 (defun javascript/init-skewer-mode ()
   (use-package skewer-mode

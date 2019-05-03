@@ -10,10 +10,10 @@
 ;;; License: GPLv3
 
 (setq clojure-packages
-      '(cider
+      '(
+        cider
         cider-eval-sexp-fu
         (clj-refactor :toggle clojure-enable-clj-refactor)
-        clojure-cheatsheet
         clojure-mode
         (clojure-snippets :toggle (configuration-layer/layer-used-p 'auto-completion))
         company
@@ -27,8 +27,8 @@
         popwin
         (sayid :toggle clojure-enable-sayid)
         smartparens
-        subword))
-
+        subword
+        ))
 
 (defun clojure/init-cider ()
   (use-package cider
@@ -42,17 +42,13 @@
             cider-repl-use-clojure-font-lock t
             cider-repl-history-file (concat spacemacs-cache-directory "cider-repl-history"))
       (add-hook 'clojure-mode-hook 'cider-mode)
+
       (dolist (x '(spacemacs-jump-handlers-clojure-mode
                    spacemacs-jump-handlers-clojurec-mode
                    spacemacs-jump-handlers-clojurescript-mode
                    spacemacs-jump-handlers-clojurex-mode
                    spacemacs-jump-handlers-cider-repl-mode))
-        (add-to-list x 'spacemacs/clj-find-var))
-
-      (add-hook 'clojure-mode-hook #'spacemacs//init-jump-handlers-clojure-mode)
-      (add-hook 'clojurescript-mode-hook #'spacemacs//init-jump-handlers-clojurescript-mode)
-      (add-hook 'clojurec-mode-hook #'spacemacs//init-jump-handlers-clojurec-mode)
-      (add-hook 'cider-repl-mode-hook #'spacemacs//init-jump-handlers-cider-repl-mode)
+        (add-to-list x '(spacemacs/clj-find-var :async t)))
 
       ;; TODO: having this work for cider-macroexpansion-mode would be nice,
       ;;       but the problem is that it uses clojure-mode as its major-mode
@@ -67,19 +63,14 @@
                ("mt" . "test")
                ("mT" . "toggle")
                )))
-        (dolist (m '(clojure-mode
-                     clojurec-mode
-                     clojurescript-mode
-                     clojurex-mode
-                     cider-repl-mode
-                     cider-clojure-interaction-mode))
+        (spacemacs|forall-clojure-modes m
           (mapc (lambda (x) (spacemacs/declare-prefix-for-mode
                               m (car x) (cdr x)))
                 cider--key-binding-prefixes)
 
           (spacemacs/set-leader-keys-for-major-mode m
             "ha" 'cider-apropos
-            "hc" 'clojure-cheatsheet
+            "hc" 'cider-cheatsheet
             "hg" 'cider-grimoire
             "hh" 'cider-doc
             "hj" 'cider-javadoc
@@ -94,6 +85,7 @@
             "eM" 'cider-macroexpand-all
             "eP" 'cider-pprint-eval-last-sexp
             "er" 'cider-eval-region
+            "eu" 'cider-undef
             "ew" 'cider-eval-last-sexp-and-replace
 
             "="  'cider-format-buffer
@@ -158,14 +150,6 @@
             "pS" 'cider-profile-summary
             "pt" 'cider-profile-toggle
             "pv" 'cider-profile-var-profiled-p
-
-            ;; refactorings from clojure-mode
-            "rc#" 'clojure-convert-collection-to-set
-            "rc'" 'clojure-convert-collection-to-quoted-list
-            "rc(" 'clojure-convert-collection-to-list
-            "rc:" 'clojure-toggle-keyword-string
-            "rc[" 'clojure-convert-collection-to-vector
-            "rc{" 'clojure-convert-collection-to-map
             )))
 
       ;; cider-repl-mode only
@@ -252,11 +236,28 @@
     :config
     (progn
       (cljr-add-keybindings-with-prefix "C-c C-f")
-
       ;; Usually we do not set keybindings in :config, however this must be done
       ;; here because it reads the variable `cljr--all-helpers'. Since
       ;; `clj-refactor-mode' is added to the hook, this should trigger when a
       ;; clojure buffer is opened anyway, so there's no "keybinding delay".
+      (spacemacs|forall-clojure-modes m
+        (dolist (r cljr--all-helpers)
+          (let* ((binding (car r))
+                 (func (cadr r)))
+            (when (not (string-prefix-p "hydra" (symbol-name func)))
+              (spacemacs/set-leader-keys-for-major-mode m
+                (concat "r" binding) func))))))))
+
+
+(defun clojure/init-clojure-mode ()
+  (use-package clojure-mode
+    :defer t
+    :init
+    (progn
+      (add-to-list 'auto-mode-alist '("\\.boot\\'" . clojure-mode))
+      ;; This regexp matches shebang expressions like `#!/usr/bin/env boot'
+      (add-to-list 'magic-mode-alist '("#!.*boot\\s-*$" . clojure-mode))
+      ;; Define all the prefixes here, although most of them apply only to bindings in clj-refactor
       (let ((clj-refactor--key-binding-prefixes
              '(("mr" . "refactor")
                ("mra" . "add")
@@ -272,55 +273,31 @@
                ("mrs" . "show/sort/stop")
                ("mrt" . "thread")
                ("mru" . "unwind/update"))))
-        (dolist (m '(clojure-mode
-                     clojurec-mode
-                     clojurescript-mode
-                     clojurex-mode
-                     cider-repl-mode
-                     cider-clojure-interaction-mode))
+        (spacemacs|forall-clojure-modes m
           (mapc (lambda (x) (spacemacs/declare-prefix-for-mode
                               m (car x) (cdr x)))
                 clj-refactor--key-binding-prefixes)
-          (dolist (r cljr--all-helpers)
-            (let* ((binding (car r))
-                   (func (cadr r)))
-              (when (not (string-prefix-p "hydra" (symbol-name func)))
-                (spacemacs/set-leader-keys-for-major-mode m
-                  (concat "r" binding) func)))))))))
-
-(defun clojure/init-clojure-cheatsheet ()
-  (use-package clojure-cheatsheet
-    :defer t
-    :init
-    (progn
-      (setq sayid--key-binding-prefixes
-            '(("mhc" . "clojure-cheatsheet")))
-      (dolist (m '(clojure-mode
-                   clojurec-mode
-                   clojurescript-mode
-                   clojurex-mode
-                   cider-repl-mode
-                   cider-clojure-interaction-mode))
-        (mapc (lambda (x) (spacemacs/declare-prefix-for-mode
-                            m (car x) (cdr x)))
-              sayid--key-binding-prefixes)
-        (spacemacs/set-leader-keys-for-major-mode m
-          "hc" 'clojure-cheatsheet)))))
-
-(defun clojure/init-clojure-mode ()
-  (use-package clojure-mode
-    :defer t
-    :init
-    (progn
-      (add-to-list 'auto-mode-alist '("\\.boot\\'" . clojure-mode))
-      ;; This regexp matches shebang expressions like `#!/usr/bin/env boot'
-      (add-to-list 'magic-mode-alist '("#!.*boot\\s-*$" . clojure-mode))
-      (dolist (m '(clojure-mode clojurec-mode clojurescript-mode clojurex-mode))
-        (spacemacs/set-leader-keys-for-major-mode m
-          "fl" 'clojure-align)))
+          (spacemacs/set-leader-keys-for-major-mode m
+            "fl" 'clojure-align
+            "rci" 'clojure-cycle-if
+            "rcp" 'clojure-cycle-privacy
+            "rc#" 'clojure-convert-collection-to-set
+            "rc'" 'clojure-convert-collection-to-quoted-list
+            "rc(" 'clojure-convert-collection-to-list
+            "rc[" 'clojure-convert-collection-to-vector
+            "rc{" 'clojure-convert-collection-to-map
+            "rc:" 'clojure-toggle-keyword-string
+            "rtf" 'clojure-thread-first-all
+            "rth" 'clojure-thread
+            "rtl" 'clojure-thread-last-all
+            "rua" 'clojure-unwind-all
+            "ruw" 'clojure-unwind)
+          (unless clojure-enable-clj-refactor
+            (spacemacs/set-leader-keys-for-major-mode m
+              "r?" 'spacemacs/clj-describe-missing-refactorings)))))
     :config
     (when clojure-enable-fancify-symbols
-      (dolist (m '(clojure-mode clojurescript-mode clojurec-mode clojurex-mode))
+      (spacemacs|forall-clojure-modes m
         (clojure/fancify-symbols m)))))
 
 (defun clojure/post-init-eldoc ()
@@ -331,10 +308,7 @@
 (defun clojure/pre-init-evil-cleverparens ()
   (spacemacs|use-package-add-hook evil-cleverparens
     :pre-init
-    (dolist (m '(clojure-mode
-                 clojurec-mode
-                 clojurescript-mode
-                 clojurex-mode))
+    (spacemacs|forall-clojure-modes m
       (add-to-list 'evil-lisp-safe-structural-editing-modes m))))
 
 (defun clojure/pre-init-popwin ()
@@ -388,14 +362,9 @@
     (progn
       (setq sayid--key-binding-prefixes
             '(("mdt" . "trace")))
-      (dolist (m '(clojure-mode
-                   clojurec-mode
-                   clojurescript-mode
-                   clojurex-mode
-                   cider-repl-mode
-                   cider-clojure-interaction-mode))
-        (mapc (lambda (x) (spacemacs/declare-prefix-for-mode
-                           m (car x) (cdr x)))
+      (spacemacs|forall-clojure-modes m
+        (mapc (lambda (x) (spacemacs/declare-prefix-for-mode m
+                            (car x) (cdr x)))
               sayid--key-binding-prefixes)
         (spacemacs/set-leader-keys-for-major-mode m
           ;;These keybindings mostly preserved from the default sayid bindings
@@ -442,8 +411,4 @@
         (kbd "h") 'sayid-traced-buf-show-help))))
 
 (defun clojure/post-init-parinfer ()
-  (dolist (m '(clojure-mode-hook
-               clojurec-mode-hook
-               clojurescript-mode-hook
-               clojurex-mode-hook))
-    (add-hook m 'parinfer-mode)))
+  (add-hook 'clojure-mode-hook 'parinfer-mode))

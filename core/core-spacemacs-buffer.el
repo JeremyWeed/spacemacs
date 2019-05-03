@@ -125,8 +125,8 @@ Cate special text banner can de reachable via `998', `cat' or `random*'.
         (spacemacs-buffer/message (format "Banner: %s" banner))
         (if (image-type-available-p (intern (file-name-extension banner)))
             (spacemacs-buffer//insert-image-banner banner)
-          (spacemacs-buffer//insert-ascii-banner-centered banner))
-        (spacemacs-buffer//inject-version))
+          (spacemacs-buffer//insert-ascii-banner-centered banner)))
+      (spacemacs-buffer//inject-version)
       (spacemacs-buffer//insert-buttons)
       (spacemacs//redisplay))))
 
@@ -226,7 +226,10 @@ Insert it in the first line of the buffer, right justified."
         (goto-char (point-min))
         (delete-region (point) (progn (end-of-line) (point)))
         (insert (format (format "%%%ds"
-                                spacemacs-buffer--window-width)
+                                (if (display-graphic-p)
+                                    spacemacs-buffer--window-width
+                                  ;; terminal needs one less char
+                                  (1- spacemacs-buffer--window-width)))
                         version))))))
 
 (defun spacemacs-buffer//insert-footer ()
@@ -263,6 +266,24 @@ Insert it in the first line of the buffer, right justified."
                                             heart-size
                                             (length build-rhs)))
           (insert "\n"))))))
+
+(defmacro spacemacs-buffer||notes-adapt-caption-to-width (caption
+                                                          caption-length
+                                                          width)
+  "Adapt caption string's length to the note's frame current width.
+For internal use in `spacemacs-buffer//notes-render-framed-text'.
+CAPTION: string to be encrusted onto the note's frame
+CAPTION-LENGTH: length of the caption
+WIDTH: current external width of the note's frame."
+  `(when (> ,caption-length (- ,width 6)) ; minimum frame width is 6
+     (if (> ,width 8)
+         (setq ,caption (concat (substring ,caption
+                                           0
+                                           (min -3 (- (- ,width 6 3)
+                                                      ,caption-length)))
+                                "..."))
+       (setq ,caption nil
+             ,caption-length 0))))
 
 (defun spacemacs-buffer//notes-render-framed-text
     (content &optional topcaption botcaption hpadding max-width min-width)
@@ -331,23 +352,6 @@ MIN-WIDTH is the minimal width of the frame, frame included.  The frame will not
        (make-string (max 0 (- width (if botcaption 6 4) botcaption-length)) ?─)
        "─╯" (when botcaption "\n")))))
 
-(defmacro spacemacs-buffer||notes-adapt-caption-to-width (caption
-                                                          caption-length
-                                                          width)
-  "Adapt caption string's length to the note's frame current width.
-For internal use in `spacemacs-buffer//notes-render-framed-text'.
-CAPTION: string to be encrusted onto the note's frame
-CAPTION-LENGTH: length of the caption
-WIDTH: current external width of the note's frame."
-  `(when (> ,caption-length (- ,width 6)) ; minimum frame width is 6
-     (if (> ,width 8)
-         (setq ,caption (concat (substring ,caption
-                                           0
-                                           (min -3 (- (- ,width 6 3)
-                                                      ,caption-length)))
-                                "..."))
-       (setq ,caption nil
-             ,caption-length 0))))
 
 (defun spacemacs-buffer//notes-render-framed-line (line width hpadding)
   "Return a formatted LINE with borders of a frame on each side.
@@ -605,6 +609,7 @@ REAL-WIDTH: the real width of the line.  If the line contains an image, the size
 (defun spacemacs-buffer//insert-buttons ()
   "Create and insert the interactive buttons under Spacemacs banner."
   (goto-char (point-max))
+  (unless dotspacemacs-startup-banner (insert "\n"))
   (spacemacs-buffer||add-shortcut "m" "[?]" t)
   (widget-create 'url-link
                  :tag (propertize "?" 'face 'font-lock-doc-face)

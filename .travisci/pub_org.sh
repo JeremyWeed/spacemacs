@@ -28,6 +28,11 @@ else
     exit 0
 fi
 
+if [ `git rev-list HEAD...origin/$TRAVIS_BRANCH --count` != 0 ]; then
+    echo "We are outdated. Won't publish."
+    exit 0
+fi
+
 git config --global user.name "${BOT_NAME}"
 git config --global user.email "${BOT_EMAIL}"
 git config --global push.default simple
@@ -35,7 +40,7 @@ git config --global hub.protocol https
 export GITHUB_TOKEN=$BOT_TK
 
 fold_start "CLONING_TARGET_REPOSITORY"
-target_URL="https://github.com/syl20bnr/${PUBLISH}.git"
+target_URL="https://github.com/${SPACEMACS_REPO_SLUG}.git"
 git clone "${target_URL}" -b "${TRAVIS_BRANCH}" "/tmp/${PUBLISH}"
 if [ $? -ne 0 ]; then
     echo "Failed to clone \"${target_URL}\""
@@ -51,22 +56,16 @@ rsync -rv \
       --prune-empty-dirs \
       ~/.emacs.d/ \
       "/tmp/${PUBLISH}"
-git add --all
-git diff --cached --exit-code
-if [ $? -eq 0 ]; then
+cd "/tmp/${PUBLISH}"
+/tmp/hub add --all
+/tmp/hub commit -m "documentation formatting: $(date -u)"
+if [ $? -ne 0 ]; then
     echo "Nothing to commit - exiting."
     exit 0
 fi
 fold_end "SELECTING_CHANGED_FILES"
 
 fold_start "PUSHING_CHANGES_TO_${BOT_NAME}/${PUBLISH}"
-cd "/tmp/${PUBLISH}"
-/tmp/hub add --all
-/tmp/hub commit -m "documentation formatting: $(date -u)"
-if [ $? -ne 0 ]; then
-    echo "hub commit failed"
-    exit 2
-fi
 /tmp/hub fork
 if [ $? -ne 0 ]; then
     echo "hub fork failed"
@@ -84,7 +83,7 @@ if [ $? -ne 0 ]; then
 fi
 fold_end "PUSHING_CHANGES_TO_${BOT_NAME}/${PUBLISH}"
 
-fold_start "OPENING_PR_TO_syl20bnr/${PUBLISH}.git"
+fold_start "OPENING_PR_TO_SPACEMACS_REPO"
 echo "[bot] Documentation formatting" > msg
 echo >> msg
 echo "Merge with care - I'm just a stupid bot. Beep boop." >> msg
@@ -92,4 +91,4 @@ echo "Merge with care - I'm just a stupid bot. Beep boop." >> msg
 if [ $? -ne 0 ]; then
     echo "Seems like PR already exists (not a problem)"
 fi
-fold_end "OPENING_PR_TO_syl20bnr/${PUBLISH}.git"
+fold_end "OPENING_PR_TO_SPACEMACS_REPO"

@@ -30,6 +30,11 @@ else
     exit 0
 fi
 
+if [ `git rev-list HEAD...origin/$TRAVIS_BRANCH --count` != 0 ]; then
+    echo "We are outdated. Won't publish."
+    exit 0
+fi
+
 git config --global user.name "${BOT_NAME}"
 git config --global user.email "${BOT_EMAIL}"
 git config --global push.default simple
@@ -47,22 +52,16 @@ fold_end "CLONING_TARGET_REPOSITORY"
 
 fold_start "SELECTING_CHANGED_FILES"
 rsync -avh ~/.emacs.d/export/ "/tmp/${PUBLISH}"
-git add --all
-git diff --cached --exit-code
-if [ $? -eq 0 ]; then
+cd "/tmp/${PUBLISH}"
+/tmp/hub add --all
+/tmp/hub commit -m "doc update:$(date -u)"
+if [ $? -ne 0 ]; then
     echo "Nothing to commit - exiting."
     exit 0
 fi
 fold_end "SELECTING_CHANGED_FILES"
 
 fold_start "PUSHING_CHANGES_TO_${BOT_NAME}/${PUBLISH}"
-cd "/tmp/${PUBLISH}"
-/tmp/hub add --all
-/tmp/hub commit -m "doc update:$(date -u)"
-if [ $? -ne 0 ]; then
-    echo "hub commit failed"
-    exit 2
-fi
 /tmp/hub fork
 if [ $? -ne 0 ]; then
     echo "hub fork failed"
@@ -80,7 +79,7 @@ if [ $? -ne 0 ]; then
 fi
 fold_end "PUSHING_CHANGES_TO_${BOT_NAME}/${PUBLISH}"
 
-fold_start "OPENING_PR_TO_syl20bnr/${PUBLISH}.git"
+fold_start "OPENING_PR_TO_syl20bnr/${PUBLISH}"
 echo "Documentation updates (autoexport)" > msg
 echo >> msg
 echo "beep beep boop... Beep?" >> msg
@@ -88,4 +87,4 @@ echo "beep beep boop... Beep?" >> msg
 if [ $? -ne 0 ]; then
     echo "Seems like PR already exists (not a problem)"
 fi
-fold_end "OPENING_PR_TO_syl20bnr/${PUBLISH}.git"
+fold_end "OPENING_PR_TO_syl20bnr/${PUBLISH}"

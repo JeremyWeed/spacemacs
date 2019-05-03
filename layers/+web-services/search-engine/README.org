@@ -1,13 +1,15 @@
 #+TITLE: Search Engine layer
 
+#+TAGS: layer|web service
+
 [[file:img/searchengine.jpg]]
 
 * Table of Contents                     :TOC_4_gh:noexport:
 - [[#description][Description]]
   - [[#features][Features:]]
-  - [[#supported-search-engines][Supported search engines]]
+- [[#supported-search-engines][Supported search engines]]
 - [[#install][Install]]
-- [[#key-bindings][Key Bindings]]
+- [[#key-bindings][Key bindings]]
 - [[#customize-it][Customize it!]]
 
 * Description
@@ -16,7 +18,7 @@ This layer adds support for the [[https://github.com/hrs/engine-mode][Search Eng
 ** Features:
 - Browser search integration
 
-** Supported search engines
+* Supported search engines
 - Amazon
 - Bing
 - Duck Duck Go
@@ -39,7 +41,7 @@ To use this configuration layer, add it to your =~/.spacemacs=. You will need to
 add =search-engine= to the existing =dotspacemacs-configuration-layers= list in this
 file.
 
-* Key Bindings
+* Key bindings
 
 | Evil      | Holy    | Command                                   |
 |-----------+---------+-------------------------------------------|

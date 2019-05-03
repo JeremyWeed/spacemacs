@@ -1,13 +1,19 @@
-;;; packages.el --- Factor packages File for Spacemacs
+;;; packages.el --- Factor Layer packages File for Spacemacs
+;;
+;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;;
+;; Author: timor <timor.dd@googlemail.com>
+;; URL: https://github.com/syl20bnr/spacemacs
 ;;
 ;; This file is not part of GNU Emacs.
-
+;;
+;;; License: GPLv3
 
 (defconst factor-packages
   '(
     ;; Assume that factor is installed, and emacs lisp files are correctly
     ;; located in site-lisp
-    (factor-mode :location site)
+    (fuel :location site)
     yasnippet
     ))
 
@@ -20,7 +26,7 @@
                t)
   (spacemacs/add-to-hooks 'spacemacs/load-yasnippet '(factor-mode-hook fuel-mode-hook)))
 
-(defun factor/init-factor-mode()
+(defun factor/init-fuel()
   (use-package factor-mode
     :commands factor-mode run-factor fuel-mode
     :mode ("factor\\'" . factor-mode)
@@ -47,8 +53,7 @@
         "er" 'fuel-eval-region
         "eR" 'fuel-eval-extended-region
 
-        "gg" 'fuel-edit-word
-        "gG" 'fuel-edit-word-at-point
+        "gg" 'fuel-edit-word-at-point
         "ga" 'factor-visit-other-file
 
         "ta" 'fuel-test-vocab
@@ -60,6 +65,7 @@
         "rw" 'fuel-refactor-rename-word
         "ra" 'fuel-refactor-extract-article
         "rg" 'fuel-refactor-make-generic
+        "ru" 'fuel-update-usings
 
         "ss" 'run-factor
 
@@ -82,5 +88,7 @@
         "Sv" 'fuel-scaffold-vocab
         )
 
-      (evilified-state-evilify fuel-help-mode fuel-help-mode-map)))
+      (evilified-state-evilify fuel-help-mode fuel-help-mode-map)
+      (dolist (mode '(fuel-debug-uses-mode fuel-debug-mode))
+        (evil-set-initial-state mode 'insert))))
   )

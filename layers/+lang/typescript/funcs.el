@@ -40,10 +40,6 @@
       (kbd "C-k") 'tide-find-previous-reference
       (kbd "C-j") 'tide-find-next-reference
       (kbd "C-l") 'tide-goto-reference)
-    (add-to-list 'spacemacs-jump-handlers-typescript-tsx-mode
-                 '(tide-jump-to-definition :async t))
-    (add-to-list 'spacemacs-jump-handlers-typescript-mode
-                 '(tide-jump-to-definition :async t))
     (tide-setup)))
 
 (defun spacemacs//typescript-setup-tide-company ()
@@ -65,8 +61,7 @@
 (defun spacemacs//typescript-setup-lsp ()
   "Setup lsp backend."
   (if (configuration-layer/layer-used-p 'lsp)
-      (progn
-        (lsp-javascript-typescript-enable))
+      (lsp)
     (message (concat "`lsp' layer is not installed, "
                      "please add `lsp' layer to your dotfile."))))
 
@@ -136,8 +131,8 @@
    ((eq typescript-fmt-tool 'prettier)
     (call-interactively 'prettier-js))
    (t (error (concat "%s isn't valid typescript-fmt-tool value."
-                     " It should be 'tide, 'typescript-formatter or 'prettier."
-                     (symbol-name typescript-fmt-tool))))))
+                     " It should be 'tide, 'typescript-formatter or 'prettier.")
+                     (symbol-name typescript-fmt-tool)))))
 
 (defun spacemacs/typescript-fmt-before-save-hook ()
   (add-hook 'before-save-hook 'spacemacs/typescript-format t t))
@@ -156,4 +151,10 @@
 
 (defun spacemacs/typescript-jump-to-type-def ()
   (interactive)
-  (tide-jump-to-definition t))
+  (tide-jump-to-definition))
+
+(defun spacemacs/typescript-safe-local-variables (values)
+  ;; safe values for backend to be used in directory file variables
+  (dolist (value values)
+    (add-to-list 'safe-local-variable-values
+                 (cons 'typescript-backend value))))

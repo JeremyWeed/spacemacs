@@ -1,5 +1,7 @@
 #+TITLE: Evil-commentary layer
 
+#+TAGS: layer|vim
+
 * Table of Contents                     :TOC_4_gh:noexport:
 - [[#description][Description]]
   - [[#features][Features:]]
@@ -20,7 +22,7 @@ file.
 
 * Key bindings
 
-| Key Binding | Description                        |
+| Key binding | Description                        |
 |-------------+------------------------------------|
 | ~SPC ;~     | comment operator                   |
 | ~gcc~       | comment current line               |

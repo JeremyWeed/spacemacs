@@ -70,6 +70,16 @@ to 'auto, tags may not be properly aligned. "
   :type 'boolean
   :group 'spacemacs-theme)
 
+(defcustom spacemacs-theme-org-bold t
+  "Inherit text bold for org headings"
+  :type 'boolean
+  :group 'spacemacs-theme)
+
+(defcustom spacemacs-theme-org-priority-bold t
+  "Inherit text bold for priority items in agenda view"
+  :type 'boolean
+  :group 'spacemacs-theme)
+
 (defcustom spacemacs-theme-org-highlight nil
   "Highlight org headings."
   :type 'boolean
@@ -272,21 +282,21 @@ to 'auto, tags may not be properly aligned. "
 
 ;;;;; diff
      `(diff-added             ((,class :background nil :foreground ,green)))
-     `(diff-changed           ((,class :background nil :foreground ,keyword)))
+     `(diff-changed           ((,class :background nil :foreground ,blue)))
      `(diff-header            ((,class :background ,cblk-ln-bg :foreground ,func)))
      `(diff-file-header       ((,class :background ,cblk-ln-bg :foreground ,cblk)))
      `(diff-indicator-added   ((,class :background nil :foreground ,green)))
-     `(diff-indicator-changed ((,class :background nil :foreground ,keyword)))
+     `(diff-indicator-changed ((,class :background nil :foreground ,blue)))
      `(diff-indicator-removed ((,class :background nil :foreground ,red)))
-     `(diff-refine-added      ((,class :background ,green :foreground ,bg4)))
-     `(diff-refine-changed    ((,class :background ,keyword :foreground ,bg4)))
-     `(diff-refine-removed    ((,class :background ,red :foreground ,bg4)))
+     `(diff-refine-added      ((,class :background ,green :foreground ,bg1)))
+     `(diff-refine-changed    ((,class :background ,blue :foreground ,bg1)))
+     `(diff-refine-removed    ((,class :background ,red :foreground ,bg1)))
      `(diff-removed           ((,class :background nil :foreground ,red)))
 
 ;;;;; diff-hl
-     `(diff-hl-change ((,class :background ,blue-bg :foreground ,blue)))
-     `(diff-hl-delete ((,class :background ,red-bg :foreground ,red)))
-     `(diff-hl-insert ((,class :background ,green-bg :foreground ,green)))
+     `(diff-hl-change ((,class :background ,blue-bg-s :foreground ,blue)))
+     `(diff-hl-delete ((,class :background ,red-bg-s :foreground ,red)))
+     `(diff-hl-insert ((,class :background ,green-bg-s :foreground ,green)))
 
 ;;;;; dired
      `(dired-directory ((,class (:foreground ,keyword :background ,bg1 :inherit bold))))
@@ -300,18 +310,18 @@ to 'auto, tags may not be properly aligned. "
      `(dired-warning ((,class (:foreground ,war))))
 
 ;;;;; ediff
-     `(ediff-current-diff-A ((,class(:background ,red-bg-s :foreground ,red))))
+     `(ediff-current-diff-A ((,class(:background ,red-bg :foreground ,red))))
      `(ediff-current-diff-Ancestor ((,class(:background ,aqua-bg :foreground ,aqua))))
-     `(ediff-current-diff-B ((,class(:background ,green-bg-s :foreground ,green))))
+     `(ediff-current-diff-B ((,class(:background ,green-bg :foreground ,green))))
      `(ediff-current-diff-C ((,class(:background ,blue-bg :foreground ,blue))))
      `(ediff-even-diff-A ((,class(:background ,bg3))))
      `(ediff-even-diff-Ancestor ((,class(:background ,bg3))))
      `(ediff-even-diff-B ((,class(:background ,bg3))))
      `(ediff-even-diff-C ((,class(:background ,bg3))))
-     `(ediff-fine-diff-A ((,class(:background nil :inherit bold))))
+     `(ediff-fine-diff-A ((,class(:background ,red :foreground ,bg1))))
      `(ediff-fine-diff-Ancestor ((,class(:background nil :inherit bold))))
-     `(ediff-fine-diff-B ((,class(:background nil :inherit bold))))
-     `(ediff-fine-diff-C ((,class(:background nil :inherit bold))))
+     `(ediff-fine-diff-B ((,class(:background ,green :foreground ,bg1))))
+     `(ediff-fine-diff-C ((,class(:background ,blue :foreground ,bg1))))
      `(ediff-odd-diff-A ((,class(:background ,bg4))))
      `(ediff-odd-diff-Ancestor ((,class(:background ,bg4))))
      `(ediff-odd-diff-B ((,class(:background ,bg4))))
@@ -372,6 +382,8 @@ to 'auto, tags may not be properly aligned. "
      `(ess-numbers-face ((,class (:inherit font-lock-constant-face))))
      `(ess-operator-face ((,class (:foreground ,var))))
      `(ess-paren-face ((,class (:foreground ,blue))))
+     `(ess-r-control-flow-keyword-face ((,class (:foreground ,keyword))))
+     `(ess-r-signal-keyword-face ((,class (:foreground ,war))))
 
 ;;;;; evil
      `(evil-ex-substitute-matches ((,class (:background ,red-bg :foreground ,red))))
@@ -581,10 +593,9 @@ to 'auto, tags may not be properly aligned. "
 ;;;;; linum-mode
      `(linum ((,class (:foreground ,lnum :background ,bg2 :inherit default))))
 
-;;;;; display-line-numbers-mode (Emacs 26+)
-     (when (>= emacs-major-version 26)
-       `(line-number ((,class (:foreground ,lnum :background ,bg2))))
-       `(line-number-current-line ((,class (:foreground ,base :background ,bg2)))))
+;;;;; line-numbers
+     `(line-number ((,class (:foreground ,lnum :background ,bg2 :inherit default))))
+     `(line-number-current-line ((,class (:foreground ,base :background ,bg2 :inherit line-number))))
 
 ;;;;; linum-relative
      `(linum-relative-current-face ((,class (:foreground ,comp))))
@@ -717,8 +728,8 @@ to 'auto, tags may not be properly aligned. "
      `(org-footnote  ((,class (:underline t :foreground ,base))))
      `(org-hide ((,class (:foreground ,base))))
      `(org-kbd ((,class (:inherit region :foreground ,base :box (:line-width 1 :style released-button)))))
-     `(org-level-1 ((,class (:inherit bold :foreground ,head1 :height ,(if spacemacs-theme-org-height 1.3 1.0) :background ,(when spacemacs-theme-org-highlight head1-bg)))))
-     `(org-level-2 ((,class (:inherit bold :foreground ,head2 :height ,(if spacemacs-theme-org-height 1.2 1.0) :background ,(when spacemacs-theme-org-highlight head2-bg)))))
+     `(org-level-1 ((,class (:inherit bold :bold ,(if spacemacs-theme-org-bold 'unspecified nil) :foreground ,head1 :height ,(if spacemacs-theme-org-height 1.3 1.0) :background ,(when spacemacs-theme-org-highlight head1-bg)))))
+     `(org-level-2 ((,class (:inherit bold :bold ,(if spacemacs-theme-org-bold 'unspecified nil) :foreground ,head2 :height ,(if spacemacs-theme-org-height 1.2 1.0) :background ,(when spacemacs-theme-org-highlight head2-bg)))))
      `(org-level-3 ((,class (:bold nil :foreground ,head3 :height ,(if spacemacs-theme-org-height 1.1 1.0) :background ,(when spacemacs-theme-org-highlight head3-bg)))))
      `(org-level-4 ((,class (:bold nil :foreground ,head4 :background ,(when spacemacs-theme-org-highlight head4-bg)))))
      `(org-level-5 ((,class (:bold nil :foreground ,head1))))
@@ -728,7 +739,7 @@ to 'auto, tags may not be properly aligned. "
      `(org-link ((,class (:underline t :foreground ,comment))))
      `(org-meta-line ((,class (:foreground ,meta))))
      `(org-mode-line-clock-overrun ((,class (:foreground ,err))))
-     `(org-priority ((,class (:foreground ,war :inherit bold))))
+     `(org-priority ((,class (:foreground ,war :inherit bold :bold ,(if spacemacs-theme-org-priority-bold 'unspecified nil)))))
      `(org-quote ((,class (:inherit org-block :slant italic))))
      `(org-scheduled ((,class (:foreground ,comp))))
      `(org-scheduled-today ((,class (:foreground ,func :height ,(if spacemacs-theme-org-agenda-height 1.2 1.0)))))
@@ -744,6 +755,16 @@ to 'auto, tags may not be properly aligned. "
      `(org-verbatim ((,class (:foreground ,keyword))))
      `(org-verse ((,class (:inherit org-block :slant italic))))
      `(org-warning ((,class (:foreground ,err :inherit org-priority))))
+
+;;;;; outline
+     `(outline-1 ((,class (:inherit org-level-1))))
+     `(outline-2 ((,class (:inherit org-level-2))))
+     `(outline-3 ((,class (:inherit org-level-3))))
+     `(outline-4 ((,class (:inherit org-level-4))))
+     `(outline-5 ((,class (:inherit org-level-5))))
+     `(outline-6 ((,class (:inherit org-level-6))))
+     `(outline-7 ((,class (:inherit org-level-7))))
+     `(outline-8 ((,class (:inherit org-level-8))))
 
 ;;;;; perspective
      `(persp-selected-face ((,class (:inherit bold :foreground ,func))))
@@ -856,6 +877,7 @@ to 'auto, tags may not be properly aligned. "
      `(web-mode-builtin-face ((,class (:inherit ,font-lock-builtin-face))))
      `(web-mode-comment-face ((,class (:inherit ,font-lock-comment-face))))
      `(web-mode-constant-face ((,class (:inherit ,font-lock-constant-face))))
+     `(web-mode-current-element-highlight-face ((,class (:background ,bg3))))
      `(web-mode-doctype-face ((,class (:inherit ,font-lock-comment-face))))
      `(web-mode-function-name-face ((,class (:inherit ,font-lock-function-name-face))))
      `(web-mode-html-attr-name-face ((,class (:foreground ,func))))
@@ -915,8 +937,30 @@ to 'auto, tags may not be properly aligned. "
 
     (custom-theme-set-variables
      theme-name
-     `(ansi-color-names-vector [,bg4 ,red ,green ,yellow ,blue ,magenta ,cyan ,base]))
 
+;;;;; ansi-color-names
+     `(ansi-color-names-vector [,bg4 ,red ,green ,yellow ,blue ,magenta ,cyan ,base])
+
+;;;;; hl-todo
+     `(hl-todo-keyword-faces '(("TODO"   . ,war)
+                               ("NEXT"   . ,war)
+                               ("THEM"   . ,aqua)
+                               ("PROG"   . ,blue)
+                               ("OKAY"   . ,blue)
+                               ("DONT"   . ,red)
+                               ("FAIL"   . ,red)
+                               ("DONE"   . ,suc)
+                               ("NOTE"   . ,yellow)
+                               ("KLUDGE" . ,yellow)
+                               ("HACK"   . ,yellow)
+                               ("TEMP"   . ,yellow)
+                               ("FIXME"  . ,war)
+                               ("XXX"    . ,war)
+                               ("XXXX"   . ,war)
+                               ("???"    . ,war)))
+
+;;;;; pdf-tools
+    `(pdf-view-midnight-colors '(,base . ,bg1)))
     ))
 
 

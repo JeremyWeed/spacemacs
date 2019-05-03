@@ -10,20 +10,20 @@
 ;;; License: GPLv3
 
 (setq ocaml-packages
-  '(
-    ;; auto-complete
-    company
-    flycheck
-    flycheck-ocaml
-    ggtags
-    counsel-gtags
-    helm-gtags
-    merlin
-    ocp-indent
-    smartparens
-    tuareg
-    utop
-    ))
+      '(
+        ;; auto-complete
+        company
+        flycheck
+        (flycheck-ocaml :toggle (configuration-layer/layer-used-p 'syntax-checking))
+        ggtags
+        counsel-gtags
+        helm-gtags
+        merlin
+        ocp-indent
+        smartparens
+        tuareg
+        utop
+        ))
 
 (defun ocaml/post-init-company ()
   (when (configuration-layer/package-used-p 'merlin)
@@ -32,18 +32,18 @@
       :modes merlin-mode
       :variables merlin-completion-with-doc t)))
 
-(when (configuration-layer/layer-used-p 'syntax-checking)
-  (defun ocaml/post-init-flycheck ()
-    (spacemacs/enable-flycheck 'tuareg-mode))
-  (defun ocaml/init-flycheck-ocaml ()
-    (use-package flycheck-ocaml
-      :if (configuration-layer/package-used-p 'flycheck)
-      :defer t
-      :init
-      (progn
-        (with-eval-after-load 'merlin
-          (setq merlin-error-after-save nil)
-          (flycheck-ocaml-setup))))))
+(defun ocaml/post-init-flycheck ()
+  (spacemacs/enable-flycheck 'tuareg-mode))
+
+(defun ocaml/init-flycheck-ocaml ()
+  (use-package flycheck-ocaml
+    :if (configuration-layer/package-used-p 'flycheck)
+    :defer t
+    :init
+    (progn
+      (with-eval-after-load 'merlin
+        (setq merlin-error-after-save nil)
+        (flycheck-ocaml-setup)))))
 
 (defun ocaml/post-init-ggtags ()
   (add-hook 'ocaml-mode-local-vars-hook #'spacemacs/ggtags-mode-enable))
@@ -100,6 +100,9 @@
 
 (defun ocaml/init-tuareg ()
   (use-package tuareg
+    :bind (:map tuareg-mode-map
+                ;; Workaround to preserve vim backspace in normal mode
+                ([backspace] . nil))
     :mode (("\\.ml[ily]?$" . tuareg-mode)
            ("\\.topml$" . tuareg-mode))
     :defer t

@@ -14,11 +14,14 @@
 ;; ---------------------------------------------------------------------------
 
 ;; We define prefix commands only for the sake of which-key
-(setq spacemacs/key-binding-prefixes '(("a"   "applications")
+(setq spacemacs/key-binding-prefixes '(("SPC" "M-x")
+                                       ("TAB" "last buffer")
+                                       ("!"   "shell cmd")
+                                       ("*"   "search project w/input")
+                                       ("/"   "search project")
+                                       ("?"   "show keybindings")
+                                       ("a"   "applications")
                                        ("A"   "other applications")
-                                       ("ai"  "irc")
-                                       ("as"  "shells")
-                                       ("ay"  "ipython notebook")
                                        ("b"   "buffers")
                                        ("bN"  "new empty buffer")
                                        ("c"   "compile/comments")
@@ -36,33 +39,43 @@
                                        ("hP"  "profiler")
                                        ("i"   "insertion")
                                        ("j"   "jump/join/split")
+                                       ("jj"  "avy timer")
+                                       ("jl"  "avy line")
+                                       ("js"  "split sexp")
+                                       ("jw"  "avy word")
                                        ("k"   "lisp")
                                        ("kd"  "delete")
                                        ("kD"  "delete-backward")
                                        ("k`"  "hybrid")
+                                       ("m"   "major mode commands")
                                        ("n"   "narrow/numbers")
                                        ("N"   "navigation")
+                                       ("o"   "user bindings")
                                        ("p"   "projects")
-                                       ("p$"  "projects/shell")
                                        ("q"   "quit")
                                        ("r"   "registers/rings/resume")
-                                       ("Re"  "elisp")
-                                       ("Rp"  "pcre")
                                        ("s"   "search/symbol")
                                        ("sa"  "ag")
                                        ("sg"  "grep")
                                        ("sk"  "ack")
+                                       ("sp"  "search project")
+                                       ("sP"  "search project w/input")
                                        ("sr"  "ripgrep")
                                        ("st"  "pt")
                                        ("sw"  "web")
                                        ("t"   "toggles")
                                        ("tC"  "colors")
                                        ("tE"  "editing-styles")
+                                       ("tEe" "emacs (holy-mode)")
+                                       ("tEh" "hybrid (hybrid-mode)")
                                        ("th"  "highlight")
                                        ("tm"  "modeline")
                                        ("T"   "UI toggles/themes")
                                        ("C-t" "other toggles")
+                                       ("u"   "universal arg")
+                                       ("v"   "expand region")
                                        ("w"   "windows")
+                                       ("wc"  "centered")
                                        ("wp"  "popup")
                                        ("x"   "text")
                                        ("xa"  "align")
@@ -70,7 +83,6 @@
                                        ("xg"  "google-translate")
                                        ("xj"  "justification")
                                        ("xl"  "lines")
-                                       ("xm"  "move")
                                        ("xt"  "transpose")
                                        ("xw"  "words")
                                        ("z"   "zoom")))
@@ -155,16 +167,19 @@
 ;; Cycling settings -----------------------------------------------------------
 (spacemacs|define-transient-state theme
   :title "Themes Transient State"
-  :doc "\n[_n_/_<right>_] next  [_p_/_<left>_] previous  [_t_/_<up>_] helm-themes"
+  :doc "\n[_n_/_<right>_] next  [_N_/_p_/_<left>_] previous  [_t_/_<up>_] helm-themes"
   :bindings
   ("n" spacemacs/cycle-spacemacs-theme)
-  ("p" (spacemacs/cycle-spacemacs-theme 'backward))
+  ("N" spacemacs/cycle-spacemacs-theme-backward)
+  ("p" spacemacs/cycle-spacemacs-theme-backward)
   ("t" helm-themes)
   ("<up>" helm-themes)
   ("<right>" spacemacs/cycle-spacemacs-theme)
-  ("<left>" (spacemacs/cycle-spacemacs-theme 'backward)))
+  ("<left>" spacemacs/cycle-spacemacs-theme-backward))
 (spacemacs/set-leader-keys "Tn"
   'spacemacs/theme-transient-state/spacemacs/cycle-spacemacs-theme)
+(spacemacs/set-leader-keys "TN"
+  'spacemacs/theme-transient-state/spacemacs/cycle-spacemacs-theme-backward)
 ;; errors ---------------------------------------------------------------------
 (spacemacs/set-leader-keys
   "en" 'spacemacs/next-error
@@ -196,6 +211,7 @@
   ("n" spacemacs/next-error "next")
   ("p" spacemacs/previous-error "prev")
   ("N" spacemacs/previous-error "prev")
+  ("z" recenter-top-bottom "recenter")
   ("q" nil "quit" :exit t)
   :evil-leader "e.")
 ;; file -----------------------------------------------------------------------
@@ -467,8 +483,9 @@ respond to this toggle."
   "wl"  'evil-window-right
   "w <right>"  'evil-window-right
   "wm"  'spacemacs/toggle-maximize-buffer
-  "wc"  'spacemacs/toggle-centered-buffer-mode
-  "wC"  'spacemacs/toggle-centered-buffer-mode-frame
+  "wcc"  'spacemacs/toggle-centered-buffer
+  "wcC"  'spacemacs/toggle-distraction-free
+  "wc."  'spacemacs/centered-buffer-transient-state
   "wo"  'other-frame
   "wr"  'spacemacs/rotate-windows-forward
   "wR"  'spacemacs/rotate-windows-backward
@@ -552,11 +569,11 @@ respond to this toggle."
 
 (spacemacs|define-transient-state buffer
   :title "Buffer Selection Transient State"
-  :doc (concat "
+  :doc "
  [_C-1_.._C-9_] goto nth window            [_n_/_<right>_]^^  next buffer       [_b_]   buffer list
  [_1_.._9_]     move buffer to nth window  [_N_/_p_/_<left>_] previous buffer   [_C-d_] bury buffer
  [_M-1_.._M-9_] swap buffer w/ nth window  [_d_]^^^^          kill buffer       [_o_]   other window
- ^^^^                                      [_q_]^^^^          quit")
+ ^^^^                                      [_z_]^^^^          recenter          [_q_]   quit"
   :bindings
   ("n" next-buffer)
   ("<right>" next-buffer)
@@ -564,9 +581,13 @@ respond to this toggle."
   ("N" previous-buffer)
   ("o" other-window)
   ("<left>" previous-buffer)
-  ("b" helm-buffers-list)
+  ("b" (cond ((configuration-layer/layer-used-p 'helm)
+              (helm-buffers-list))
+             ((configuration-layer/layer-used-p 'ivy)
+              (ivy-switch-buffer))))
   ("d" spacemacs/kill-this-buffer)
   ("C-d" bury-buffer)
+  ("z" recenter-top-bottom)
   ("q" nil :exit t)
   ("1" move-buffer-window-no-follow-1)
   ("2" move-buffer-window-no-follow-2)
@@ -621,22 +642,46 @@ respond to this toggle."
   (interactive "p")
   (enlarge-window delta t))
 
+(defun spacemacs//window-manipulation-ts-toggle-hint ()
+  "Toggle the full hint docstring for the window manipulation transient-state."
+  (interactive)
+  (setq spacemacs--ts-full-hint-toggle
+        (logxor spacemacs--ts-full-hint-toggle 1)))
+
+(defun spacemacs//window-manipulation-ts-hint ()
+  "Return a condensed/full hint for the window manipulation transient state"
+  (concat
+   " "
+   (if (equal 1 spacemacs--ts-full-hint-toggle)
+       spacemacs--window-manipulation-ts-full-hint
+     (concat spacemacs--window-manipulation-ts-minified-hint
+             "  ([" (propertize "?" 'face 'hydra-face-red) "] help)"))))
+
+(spacemacs|transient-state-format-hint window-manipulation
+  spacemacs--window-manipulation-ts-minified-hint "
+Select: _w_ _h_ _j_ _k_ _l_ _0_.._9_ Move: _H_ _J_ _K_ _L_ _r_ _R_ Split: _s_ _v_ Resize: _[_ _]_ _{_ _}_ _m_ _|_ ___")
+
+(spacemacs|transient-state-format-hint window-manipulation
+  spacemacs--window-manipulation-ts-full-hint
+  (format "\n [_?_] toggle help
+ Select^^^^               Move^^^^              Split^^^^^^               Resize^^             Other^^
+ ──────^^^^─────────────  ────^^^^────────────  ─────^^^^^^─────────────  ──────^^───────────  ─────^^──────────────────
+ [_j_/_k_]  down/up       [_J_/_K_] down/up     [_s_]^^^^ horizontal      [_[_] shrink horiz   [_u_] restore prev layout
+ [_h_/_l_]  left/right    [_H_/_L_] left/right  [_S_]^^^^ horiz & follow  [_]_] enlarge horiz  [_U_] restore next layout
+ [_0_.._9_] window 0..9   [_r_]^^   rotate fwd  [_v_]^^^^ vertical        [_{_] shrink verti   [_d_] close current
+ [_w_]^^    other window  [_R_]^^   rotate bwd  [_V_]^^^^ verti & follow  [_}_] enlarge verti  [_D_] close other
+ [_o_]^^    other frame   ^^^^                  [_m_/_|_/___] maximize    %s^^^^^^^^^^^^^^^^^^ [_q_] quit"
+          (if (configuration-layer/package-used-p 'golden-ratio)
+              "[_g_] golden-ratio  "
+            "^^^^                  ")))
+
 (spacemacs|define-transient-state window-manipulation
-  :title "Window Manipulation Transient State"
-  :doc (concat "
- Select^^^^               Move^^^^              Split^^               Resize^^             Other^^
- ──────^^^^─────────────  ────^^^^────────────  ─────^^─────────────  ──────^^───────────  ─────^^──────────────────
- [_j_/_k_]  down/up       [_J_/_K_] down/up     [_s_] horizontal      [_[_] shrink horiz   [_u_] restore prev layout
- [_h_/_l_]  left/right    [_H_/_L_] left/right  [_S_] horiz & follow  [_]_] enlarge horiz  [_U_] restore next layout
- [_0_.._9_] window 0..9   [_r_]^^   rotate fwd  [_v_] vertical        [_{_] shrink verti   [_d_] close current
- [_w_]^^    other window  [_R_]^^   rotate bwd  [_V_] verti & follow  [_}_] enlarge verti  [_D_] close other
- [_o_]^^    other frame   ^^^^                  ^^                    ^^                   "
-               (if (configuration-layer/package-used-p 'golden-ratio)
-                   "[_g_] golden-ratio %`golden-ratio-mode"
-                 "")
-               "\n ^^^^                     ^^^^                  ^^                    ^^                   [_q_] quit")
+  :title "Window Manipulation TS"
+  :hint-is-doc t
+  :dynamic-hint (spacemacs//window-manipulation-ts-hint)
   :bindings
   ("q" nil :exit t)
+  ("?" spacemacs//window-manipulation-ts-toggle-hint)
   ("0" winum-select-window-0)
   ("1" winum-select-window-1)
   ("2" winum-select-window-2)
@@ -680,9 +725,16 @@ respond to this toggle."
   ("U" winner-redo)
   ("v" split-window-right)
   ("V" split-window-right-and-focus)
+  ("m" spacemacs/toggle-maximize-buffer)
+  ("_" spacemacs/maximize-horizontally)
+  ("|" spacemacs/maximize-vertically)
   ("w" other-window))
-(spacemacs/set-leader-keys "w."
-  'spacemacs/window-manipulation-transient-state/body)
+(spacemacs/set-leader-keys
+  "w." 'spacemacs/window-manipulation-transient-state/body
+  "w[" 'spacemacs/window-manipulation-transient-state/spacemacs/shrink-window-horizontally
+  "w]" 'spacemacs/window-manipulation-transient-state/spacemacs/enlarge-window-horizontally
+  "w{" 'spacemacs/window-manipulation-transient-state/spacemacs/shrink-window
+  "w}" 'spacemacs/window-manipulation-transient-state/spacemacs/enlarge-window)
 
 ;; end of Window Manipulation Transient State
 

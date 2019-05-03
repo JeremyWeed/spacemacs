@@ -1,16 +1,29 @@
+;;; config.el --- rcirc Layer packages File for Spacemacs
+;;
+;; Copyright (c) 2012-2018 Sylvain Benner & Contributors
+;;
+;; Author: Sylvain Benner <sylvain.benner@gmail.com>
+;; URL: https://github.com/syl20bnr/spacemacs
+;;
+;; This file is not part of GNU Emacs.
+;;
+;;; License: GPLv3
+
 (setq rcirc-packages
-  '(
-    company
-    company-emoji
-    emoji-cheat-sheet-plus
-    flyspell
-    (helm-rcirc :location local
-                :requires helm)
-    persp-mode
-    rcirc
-    rcirc-color
-    rcirc-notify
-    ))
+      '(
+        company
+        company-emoji
+        emoji-cheat-sheet-plus
+        flyspell
+        (helm-rcirc :location local
+                    :requires helm)
+        persp-mode
+        rcirc
+        rcirc-color
+        (rcirc-late-fix :location local
+                        :toggle rcirc-enable-late-fix)
+        rcirc-notify
+        ))
 
 (defun rcirc/post-init-company ()
   (spacemacs|add-company-backends :backends company-capf :modes rcirc-mode))
@@ -52,6 +65,7 @@
                                          rcirc-track-minor-mode))
 
       (spacemacs/set-leader-keys "air" 'spacemacs/rcirc)
+      (spacemacs/declare-prefix "ai"  "irc")
       (evil-set-initial-state 'rcirc-mode 'insert))
       (setq rcirc-fill-column 80
             rcirc-buffer-maximum-lines 2048
@@ -92,6 +106,12 @@
 
 (defun rcirc/init-rcirc-color ()
   (use-package rcirc-color :defer t))
+
+(defun rcirc/init-rcirc-late-fix ()
+  (spacemacs|use-package-add-hook rcirc
+    :post-config
+    (when rcirc-enable-late-fix
+      (use-package rcirc-late-fix))))
 
 (defun rcirc/init-rcirc-notify ()
   (use-package rcirc-notify

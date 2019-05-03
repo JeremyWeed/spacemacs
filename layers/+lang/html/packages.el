@@ -57,10 +57,7 @@
     (progn
       (spacemacs|add-company-backends
         :backends (company-web-html company-css)
-        :modes web-mode
-        :variables
-        ;; see https://github.com/osv/company-web/issues/4
-        company-minimum-prefix-length 0)
+        :modes web-mode)
       (spacemacs|add-company-backends
         :backends company-web-jade
         :modes pug-mode)
@@ -80,6 +77,10 @@
       ;; prog-mode major-mode in Emacs 24 and below.
       (when (version< emacs-version "25")
         (add-hook 'css-mode-hook 'spacemacs/run-prog-mode-hooks))
+
+      (spacemacs/declare-prefix-for-mode 'css-mode "m=" "format")
+      (spacemacs/declare-prefix-for-mode 'css-mode "mg" "goto")
+      (spacemacs/declare-prefix-for-mode 'css-mode "mz" "foldz")
 
       (spacemacs/set-leader-keys-for-major-mode 'css-mode
         "zc" 'spacemacs/css-contract-statement
@@ -139,7 +140,7 @@
     :init
     (progn
       (dolist (mode '(web-mode css-mode))
-        (spacemacs/set-leader-keys-for-major-mode 'web-mode "i" 'spacemacs/impatient-mode)))))
+        (spacemacs/set-leader-keys-for-major-mode 'web-mode "I" 'spacemacs/impatient-mode)))))
 
 (defun html/init-less-css-mode ()
   (use-package less-css-mode
@@ -193,6 +194,7 @@
     :defer t
     :config
     (progn
+      (spacemacs/declare-prefix-for-mode 'web-mode "m=" "format")
       (spacemacs/declare-prefix-for-mode 'web-mode "mE" "errors")
       (spacemacs/declare-prefix-for-mode 'web-mode "mg" "goto")
       (spacemacs/declare-prefix-for-mode 'web-mode "mh" "dom")

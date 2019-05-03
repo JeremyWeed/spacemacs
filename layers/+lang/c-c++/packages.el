@@ -10,36 +10,37 @@
 ;;; License: GPLv3
 
 (setq c-c++-packages
-  '(
-     cc-mode
-     clang-format
-     company
-     (company-c-headers :requires company)
-     (company-rtags :requires company rtags)
-     company-ycmd
-     counsel-gtags
-     disaster
-     flycheck
-     (flycheck-rtags :requires flycheck rtags)
-     gdb-mi
-     ggtags
-     google-c-style
-     helm-cscope
-     helm-gtags
-     (helm-rtags :requires helm rtags)
-     (ivy-rtags :requires ivy rtags)
-     org
-     realgud
-     rtags
-     semantic
-     srefactor
-     stickyfunc-enhance
-     xcscope
-     ycmd
-     ;;lsp-backend
-     (cquery :requires lsp-mode)
-     (ccls :requires lsp-mode)
-     projectile))
+      '(
+        cc-mode
+        clang-format
+        company
+        (company-c-headers :requires company)
+        (company-rtags :requires company rtags)
+        company-ycmd
+        counsel-gtags
+        disaster
+        flycheck
+        (flycheck-rtags :requires flycheck rtags)
+        gdb-mi
+        ggtags
+        google-c-style
+        helm-cscope
+        helm-gtags
+        (helm-rtags :requires helm rtags)
+        (ivy-rtags :requires ivy rtags)
+        org
+        realgud
+        rtags
+        semantic
+        srefactor
+        stickyfunc-enhance
+        xcscope
+        ycmd
+        ;;lsp-backend
+        (cquery :requires lsp-mode)
+        (ccls :requires lsp-mode)
+        projectile
+        ))
 
 
 (defun c-c++/init-cc-mode ()
@@ -48,7 +49,7 @@
     :init
     (progn
       (add-to-list 'auto-mode-alist
-                   `("\\.h\\'" . ,c-c++-default-mode-for-headers))
+        `("\\.h\\'" . ,c-c++-default-mode-for-headers))
       (when c-c++-enable-auto-newline
         (add-hook 'c-mode-common-hook 'spacemacs//c-toggle-auto-newline)))
     :config
@@ -80,7 +81,7 @@
     (spacemacs|add-company-backends :backends company-cmake :modes cmake-mode))
   (when c-c++-enable-clang-support
     (if (spacemacs//c-c++-lsp-enabled)
-        (display-warning :error "`c-c++-enable-clang-support' ignored when using lsp backend")
+      (display-warning :error "`c-c++-enable-clang-support' ignored when using lsp backend")
       (progn
         (spacemacs|add-company-backends :backends company-clang :modes c-mode-common)
         (setq company-clang-prefix-guesser 'spacemacs/company-more-than-prefix-guesser)
@@ -258,28 +259,23 @@
       (spacemacs/set-leader-keys-for-major-mode mode "gi" 'cscope-index-files))))
 
 ;; BEGIN LSP BACKEND PACKAGES
-
 ;; See also https://github.com/cquery-project/cquery/wiki/Emacs
 (defun c-c++/init-cquery ()
   (use-package cquery
     :if (eq c-c++-backend 'lsp-cquery)
-    :defer t
-    :commands lsp-cquery-enable
-    :init
-    (add-hook 'c-mode-common-hook #'spacemacs//c-c++-lsp-enable)
     :config
-    (spacemacs//c-c++-lsp-config)))
+    (spacemacs//c-c++-lsp-config)
+    :hook ((c-mode c++-mode) .
+            (lambda () (cl-pushnew #'company-lsp company-backends) (require 'cquery) (remhash 'clangd lsp-clients) (lsp)))))
 
 ;; See also https://github.com/MaskRay/ccls/wiki/Emacs
 (defun c-c++/init-ccls ()
   (use-package ccls
     :if (eq c-c++-backend 'lsp-ccls)
-    :defer t
-    :commands lsp-ccls-enable
-    :init
-    (add-hook 'c-mode-common-hook #'spacemacs//c-c++-lsp-enable)
     :config
-    (spacemacs//c-c++-lsp-config)))
+    (spacemacs//c-c++-lsp-config)
+    :hook ((c-mode c++-mode) .
+            (lambda () (cl-pushnew #'company-lsp company-backends) (require 'ccls) (remhash 'clangd lsp-clients) (lsp)))))
 
 ;;Intentionally adding both cquery and ccls cache dirs to ignore list, to facilitate switching between
 ;;two without multiple caches polluting projectile find file results
@@ -294,8 +290,7 @@
       (when c-c++-adopt-subprojects
         (setq projectile-project-root-files-top-down-recurring
           (append '("compile_commands.json"
-                     ".cquery"
-                     ".ccls")
+                     ".cquery")
             projectile-project-root-files-top-down-recurring))))))
 
 ;; END LSP BACKEND PACKAGES

@@ -1,10 +1,12 @@
 #+TITLE: Semantic layer
 
+#+TAGS: emacs|layer
+
 * Table of Contents                     :TOC_4_gh:noexport:
 - [[#description][Description]]
   - [[#features][Features:]]
 - [[#install][Install]]
-- [[#key-bindings][Key Bindings]]
+- [[#key-bindings][Key bindings]]
 
 * Description
 CEDET is a *C*ollection of *E*macs *D*evelopment *E*nvironment *T*ools written
@@ -39,8 +41,8 @@ By default, Spacemacs sets Semantic to parse only file, local and project scope.
 For a different parsing scope, you can customize the variable
 =semanticdb-find-default-throttle=.
 
-* Key Bindings
+* Key bindings
 
-| Key Binding | Description                         |
+| Key binding | Description                         |
 |-------------+-------------------------------------|
 | ~SPC m r~   | srefactor: refactor thing at point. |
